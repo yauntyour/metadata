@@ -26,6 +26,7 @@ extern "C"
         memset(meta->__ptr__, 0, size);
 
         meta->__count__ = 0;
+        assert(__destruct__ != NULL);
         meta->__destruct__ = __destruct__;
         meta->__allocated__ = size;
         return meta;
@@ -35,6 +36,7 @@ extern "C"
         metadata *_meta = (metadata *)meta;
 
         assert(meta != _meta->__ptr__);
+        assert(_meta->__count__ == 0);
         _meta->__destruct__(_meta->__ptr__);
         _meta->__ptr__ = NULL;
         free(*(void **)meta);
@@ -43,6 +45,10 @@ extern "C"
 #define metadata_alloc(size, destruct) (__metadata_alloc__(size, destruct))
 #define metadata_free(meta_ptr) (__metadata_free__(meta_ptr))
 #define metadata_ptr(meta_ptr) (*meta_ptr)
+
+#define metadata_quote(meta_ptr) ((metadata*)meta_ptr)->__count__ += 1
+#define metadata_unquote(meta_ptr) ((metadata*)meta_ptr)->__count__ -= 1
+
 #define metadata_type(Typename) Typename *
 #define metadata_dtorc(funcName) void funcName(void *ptr)
 
